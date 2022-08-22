@@ -71,7 +71,7 @@ class Turret {
 	}
 
 	fire = () => {
-		
+
 	}
 }
 
@@ -128,38 +128,44 @@ function handlePressedKeys() {
 	var update = false;
 	if (game.keysPressed[65]) //a
 	{
-		++game.player1.front.dir;
-		++game.player1.rear.dir;
+		for (let turret of game.player1.turrets) {
+			++turret.dir;
+		}
 		update = true;
 	}
 	if (game.keysPressed[68]) //d
 	{
-		--game.player1.front.dir;
-		--game.player1.rear.dir;
+		for (let turret of game.player1.turrets) {
+			--turret.dir;
+		}
 		update = true;
 	}
 	if (game.keysPressed[87]) //w
 	{
-		++game.player1.front.angle;
-		++game.player1.rear.angle;
+		for (let turret of game.player1.turrets) {
+			++turret.angle;
+		}
 		update = true;
 	}
 	if (game.keysPressed[83]) //s
 	{
-		--game.player1.front.angle;
-		--game.player1.rear.angle;
+		for (let turret of game.player1.turrets) {
+			--turret.angle;
+		}
 		update = true;
 	}
 	if (game.keysPressed[81]) //q
 	{
-		++game.player1.front.dir;
-		--game.player1.rear.dir
+		//TODO MultiTurrets
+		--game.player1.turrets[0].dir;
+		++game.player1.turrets[1].dir;
 		update = true;
 	}
 	if (game.keysPressed[69]) //e
 	{
-		--game.player1.front.dir;
-		++game.player1.rear.dir;
+		//TODO MultiTurrets
+		++game.player1.turrets[0].dir;
+		--game.player1.turrets[1].dir;
 		update = true;
 	}
 	if (game.keysPressed[70]) //f
@@ -168,6 +174,16 @@ function handlePressedKeys() {
 		update = true;
 	}
 	if (game.keysPressed[86]) //v
+	{
+		--game.player1.speed;
+		update = true;
+	}
+	if (game.keysPressed[38]) //up arrow
+	{
+		++game.player1.speed;
+		update = true;
+	}
+	if (game.keysPressed[40]) //down arrow
 	{
 		--game.player1.speed;
 		update = true;
@@ -183,26 +199,36 @@ function handlePressedKeys() {
 	if (game.keysPressed[32]) //space
 	{
 		for (let turret of game.player1.turrets) {
+			if (turret.reloading) continue;
 
-			game.bullets.push(new Bullet(game.player1, turret, 1));
+			turret.reloading = true;
+			let b = new Bullet(game.player1, turret, 1);
+			game.bullets.push(b);
+			game.objects.push(b);
+			window.setTimeout(() => { turret.reloading = false }, 2000);
 		}
 	}
 
 	if (update) {
-		game.labels["frontAngleLabel"].innerHTML = game.player1.front.dir.toString();
-		game.labels["rearAngleLabel"].innerHTML = game.player1.rear.dir.toString();
-		game.labels["frontElevationLabel"].innerHTML = game.player1.front.angle.toString();
-		game.labels["rearElevationLabel"].innerHTML = game.player1.rear.angle.toString();
+		//TODO MultiTurrets
+		game.labels["frontAngleLabel"].innerHTML = game.player1.turrets[0].dir.toString();
+		game.labels["rearAngleLabel"].innerHTML = game.player1.turrets[1].dir.toString();
+		game.labels["frontElevationLabel"].innerHTML = game.player1.turrets[0].angle.toString();
+		game.labels["rearElevationLabel"].innerHTML = game.player1.turrets[1].angle.toString();
 		game.labels["speed"].innerHTML = game.player1.speed.toString();
 	}
 }
 
 function mainLoop(timestamp) {
+	//This clears the canvas
 	game.cvs.width = game.cvs.width;
 
 	for (let o of game.objects) {
 		o.move();
 		o.draw();
+	}
+	for (let bIndex in game.bullets) {
+		game.bullets[bIndex].check(bIndex);
 	}
 
 	window.requestAnimationFrame(mainLoop);
@@ -211,40 +237,17 @@ function mainLoop(timestamp) {
 function init() {
 	document.addEventListener("keydown", keyDown);
 	document.addEventListener("keyup", keyUp);
-	game.cvs = document.getElementById("gameCanvas");
-	game.ctx = game.cvs.getContext("2d");
 	game.labels["frontAngleLabel"] = document.getElementById("frontAngleLabel");
 	game.labels["rearAngleLabel"] = document.getElementById("rearAngleLabel");
 	game.labels["frontElevationLabel"] = document.getElementById("frontElevationLabel");
 	game.labels["rearElevationLabel"] = document.getElementById("rearElevationLabel");
 	game.labels["speed"] = document.getElementById("speed");
-
+	game.cvs = document.getElementById("gameCanvas");
+	game.ctx = game.cvs.getContext("2d");
 
 	game.player1 = new Player(200, 30, 0, 0);
 	game.objects = [game.player1];
 	mainLoop();
 
 	window.setInterval(handlePressedKeys, 50);
-
-	/*
-	
-	game.images.bulletImage = new Image();
-	game.images.bulletImage.src = "img/bullet.png";
-	game.images.playerImage = new Image();
-	game.images.playerImage.src = "img/ship.png";
-	game.images.turretImage = new Image();
-	game.images.turretImage.src = "img/turret.png";
-	game.images.playerImage.onload=function(){
-		frontTurret = new Turret(game.images.playerImage.width/3,0,0,game.images.turretImage,0);
-		rearTurret = new Turret(-game.images.playerImage.width/3,0,0,game.images.turretImage,0);
-		game.player1 = new Player(game.images.playerImage.width/2,
-							  game.images.playerImage.height/2,
-							0,
-							game.images.playerImage,
-							0,
-							frontTurret,
-							rearTurret);
-	}
-	
-	*/
 }
