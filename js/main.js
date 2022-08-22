@@ -2,7 +2,6 @@ var game = {};
 game.player1;
 game.bullets = [];
 game.keysPressed = [];
-game.labels = [];
 game.cvs;
 game.ctx;
 game.p = Math.PI / 180;
@@ -114,6 +113,31 @@ class Player {
 	}
 }
 
+class Dashboard {
+	constructor(x, y, player) {
+		this.x = x;
+		this.y = y;
+		this.player = player;
+	}
+	move = () => { }
+	draw = () => {
+		game.ctx.save();
+		game.ctx.translate(this.x, this.y);
+		game.ctx.font = "30px Arial";
+		game.ctx.fillText("Speed", 5, 30);
+		game.ctx.fillText(this.player.speed.toString(), 150, 30);
+		game.ctx.fillText("Front Dir", 5, 60);
+		game.ctx.fillText(this.player.turrets[0].dir.toString(), 150, 60);
+		game.ctx.fillText("Rear Dir", 5, 90);
+		game.ctx.fillText(this.player.turrets[1].dir.toString(), 150, 90);
+		game.ctx.fillText("Front Ang", 5, 120);
+		game.ctx.fillText(this.player.turrets[0].angle.toString(), 150, 120);
+		game.ctx.fillText("Rear Ang", 5, 150);
+		game.ctx.fillText(this.player.turrets[1].angle.toString(), 150, 150);
+
+		game.ctx.restore();
+	}
+}
 function keyDown(keyEvent) {
 	var charCode = keyEvent.charCode ? keyEvent.charCode : keyEvent.keyCode;
 	game.keysPressed[charCode] = true;
@@ -125,68 +149,57 @@ function keyUp(keyEvent) {
 }
 
 function handlePressedKeys() {
-	var update = false;
 	if (game.keysPressed[65]) //a
 	{
 		for (let turret of game.player1.turrets) {
 			++turret.dir;
 		}
-		update = true;
 	}
 	if (game.keysPressed[68]) //d
 	{
 		for (let turret of game.player1.turrets) {
 			--turret.dir;
 		}
-		update = true;
 	}
 	if (game.keysPressed[87]) //w
 	{
 		for (let turret of game.player1.turrets) {
 			++turret.angle;
 		}
-		update = true;
 	}
 	if (game.keysPressed[83]) //s
 	{
 		for (let turret of game.player1.turrets) {
 			--turret.angle;
 		}
-		update = true;
 	}
 	if (game.keysPressed[81]) //q
 	{
 		//TODO MultiTurrets
 		--game.player1.turrets[0].dir;
 		++game.player1.turrets[1].dir;
-		update = true;
 	}
 	if (game.keysPressed[69]) //e
 	{
 		//TODO MultiTurrets
 		++game.player1.turrets[0].dir;
 		--game.player1.turrets[1].dir;
-		update = true;
 	}
 	if (game.keysPressed[70]) //f
 	{
 		++game.player1.speed;
-		update = true;
 	}
 	if (game.keysPressed[86]) //v
 	{
 		--game.player1.speed;
-		update = true;
 	}
 	if (game.keysPressed[38]) //up arrow
 	{
 		++game.player1.speed;
-		update = true;
 	}
 	if (game.keysPressed[40]) //down arrow
 	{
 		--game.player1.speed;
-		update = true;
 	}
 	if (game.keysPressed[37]) //left arrow
 	{
@@ -209,14 +222,6 @@ function handlePressedKeys() {
 		}
 	}
 
-	if (update) {
-		//TODO MultiTurrets
-		game.labels["frontAngleLabel"].innerHTML = game.player1.turrets[0].dir.toString();
-		game.labels["rearAngleLabel"].innerHTML = game.player1.turrets[1].dir.toString();
-		game.labels["frontElevationLabel"].innerHTML = game.player1.turrets[0].angle.toString();
-		game.labels["rearElevationLabel"].innerHTML = game.player1.turrets[1].angle.toString();
-		game.labels["speed"].innerHTML = game.player1.speed.toString();
-	}
 }
 
 function mainLoop(timestamp) {
@@ -231,21 +236,20 @@ function mainLoop(timestamp) {
 		game.bullets[bIndex].check(bIndex);
 	}
 
+	//Draw the dashboard last, so it goes over everything else
+	game.dashboard.draw();
+
 	window.requestAnimationFrame(mainLoop);
 }
 
 function init() {
 	document.addEventListener("keydown", keyDown);
 	document.addEventListener("keyup", keyUp);
-	game.labels["frontAngleLabel"] = document.getElementById("frontAngleLabel");
-	game.labels["rearAngleLabel"] = document.getElementById("rearAngleLabel");
-	game.labels["frontElevationLabel"] = document.getElementById("frontElevationLabel");
-	game.labels["rearElevationLabel"] = document.getElementById("rearElevationLabel");
-	game.labels["speed"] = document.getElementById("speed");
 	game.cvs = document.getElementById("gameCanvas");
 	game.ctx = game.cvs.getContext("2d");
 
-	game.player1 = new Player(200, 30, 0, 0);
+	game.player1 = new Player(300, 30, 0, 0);
+	game.dashboard = new Dashboard(0, 0, game.player1);
 	game.objects = [game.player1];
 	mainLoop();
 
