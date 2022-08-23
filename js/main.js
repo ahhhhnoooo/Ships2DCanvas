@@ -74,7 +74,7 @@ class Turret {
 	}
 }
 
-class Player {
+class Ship {
 	LENGTH = 200;
 	WIDTH = 50;
 
@@ -224,14 +224,16 @@ function handlePressedKeys() {
 
 }
 
-function mainLoop(timestamp) {
+function mainLoop() {
 	//This clears the canvas
 	game.cvs.width = game.cvs.width;
 
+	//Update and draw all game objects, IN ORDER
 	for (let o of game.objects) {
 		o.move();
 		o.draw();
 	}
+	//Need to call check on bullets specifically, in case of collision
 	for (let bIndex in game.bullets) {
 		game.bullets[bIndex].check(bIndex);
 	}
@@ -248,10 +250,12 @@ function init() {
 	game.cvs = document.getElementById("gameCanvas");
 	game.ctx = game.cvs.getContext("2d");
 
-	game.player1 = new Player(300, 30, 0, 0);
+	game.player1 = new Ship(300, 30, 0, 0);
+	game.enemy1 = new Ship(300, 600, 0, 1);
 	game.dashboard = new Dashboard(0, 0, game.player1);
-	game.objects = [game.player1];
+	game.objects = [game.player1, game.enemy1];
 	mainLoop();
 
 	window.setInterval(handlePressedKeys, 50);
+	window.setInterval(()=> {--game.enemy1.dir}, 60)
 }
